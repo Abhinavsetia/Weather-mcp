@@ -35,7 +35,7 @@ def format_alert(feature: dict)-> str:
     props = feature["properties"]
     return f"""
 Event:{props.get("event","Unknown")}
-Area:{props.get("area", "Unknown")}
+Area:{props.get("areaDesc", "Unknown")}
 Severity:{props.get("severity", "Unknown")}
 Description:{props.get("description", "No description is available atm")}
 Instruction:{props.get("instruction","sorry the instruction were'nt provided")}"""
@@ -53,10 +53,24 @@ async def get_alerts(state: str) -> str:
         state: two-letter US state code (eg CA,NY)
 
     """
-    #here the helper function is called 
+    #here the helper function is called, also this mcp give the weather alert active ones
     url = f"{NWS_API_BASE}/alerts/active/area/{state}"
     data = await make_nws_request(url)
-    #error handling with if 
-    if not data or "feature" not in data:
+    #error handling with if data doesnt exist or if features is not in the data
+    if not data or "features" not in data:
         return "Unable to fetch the alerts or there are'nt any."
-    
+    #this if statement handles if is empty return that no alerts as of now
+    if not data["features"]:
+        return "No active alerts for this state.."
+    #but if there are alerts then the second helper function will format them for readability
+    #here alerts are formated for each featuer out of the features 
+    alerts = [format_alert(feature) for feature in data["features"]]
+    #this is a shortcut to appead all the formatted features to alerts list and finally join them below 
+    return "\n---\n".join(alerts)
+
+
+def main():
+    mcp.run(transport='stdio')
+
+if "__name__" == "__main__":
+        main()
