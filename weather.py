@@ -34,8 +34,29 @@ def format_alert(feature: dict)-> str:
     """formats the alert in json i guess"""
     props = feature["properties"]
     return f"""
-Event:{props.get("event",)}
-Area:{props.get("area")}
-Severity:{props.get("severity")}
-Description:{props.get("description")}
-Instruction:{props.get("instruction")}"""
+Event:{props.get("event","Unknown")}
+Area:{props.get("area", "Unknown")}
+Severity:{props.get("severity", "Unknown")}
+Description:{props.get("description", "No description is available atm")}
+Instruction:{props.get("instruction","sorry the instruction were'nt provided")}"""
+
+
+
+#the mcp tool module 
+#the tool will be responsible for the etire execution of the script 
+@mcp.tool()
+async def get_alerts(state: str) -> str:
+    """
+    mcp tool to get_alerts for a US state
+    
+    Args:
+        state: two-letter US state code (eg CA,NY)
+
+    """
+    #here the helper function is called 
+    url = f"{NWS_API_BASE}/alerts/active/area/{state}"
+    data = await make_nws_request(url)
+    #error handling with if 
+    if not data or "feature" not in data:
+        return "Unable to fetch the alerts or there are'nt any."
+    
